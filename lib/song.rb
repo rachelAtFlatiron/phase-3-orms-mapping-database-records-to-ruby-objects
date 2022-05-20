@@ -8,6 +8,7 @@ class Song
     @album = album
   end
 
+
   def self.drop_table
     sql = <<-SQL
       DROP TABLE IF EXISTS songs
@@ -49,4 +50,27 @@ class Song
     song.save
   end
 
+  def self.new_from_db(row)
+    self.new(name:row[1], album:row[2], id:row[0])
+  end
+
+  def self.all 
+    sql = <<-SQL
+      SELECT * FROM songs 
+    SQL
+    all = []
+    DB[:conn].execute(sql) do |row|
+      all << self.new_from_db(row)
+    end 
+    all 
+  end 
+
+  def self.find_by_name(name)
+    sql = <<-SQL 
+      SELECT * FROM songs WHERE name=? LIMIT 1
+    SQL
+    DB[:conn].execute(sql, name).map do |row|
+      self.new_from_db(row)
+    end.first
+  end 
 end
